@@ -24,7 +24,7 @@ window.onload = async function() {
         const data = await response.json();
         
         // Đổ dữ liệu chữ khớp chính xác với tên cột trong PostgreSQL của bạn[cite: 8]
-        document.getElementById("p_name").innerText = data.ho_va_ten;
+        document.getElementById("p_name").innerText = data.ho_va_ten ||"Liệt sĩ";
         document.getElementById("p_birth").innerText = data.nam_sinh || "Trống";
         document.getElementById("p_home").innerText = data.que_quan || "Trống";
         document.getElementById("p_death").innerText = data.ngay_hy_sinh || "Trống";
@@ -32,9 +32,9 @@ window.onload = async function() {
         document.getElementById("p_unit").innerText = data.don_vi || "Trống";
         
         // Định dạng thông tin vị trí mộ[cite: 8]
-        document.getElementById("p_area").innerText = data.hang || "Trống";
-        document.getElementById("p_row").innerText = data.so_mo || "Trống";
-        document.getElementById("p_grave").innerText = data.so_tt || "Trống";
+        document.getElementById("p_area").innerText = "Trống";
+        document.getElementById("p_row").innerText = data.hang || "Trống";
+        document.getElementById("p_grave").innerText = data.so_mo || "Trống";
         
         // Hiển thị tiểu sử[cite: 8]
         document.getElementById("p_bio").innerText = data.tieu_su || "Đang cập nhật thông tin tiểu sử...";
