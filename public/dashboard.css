@@ -280,3 +280,54 @@ tr:hover { background-color: #f1f1f1; }
     font-style: italic;
     opacity: 0.9;
 }
+
+/* --- CẤU HÌNH RESPONSIVE CHO ĐIỆN THOẠI (Màn hình dưới 768px) --- */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Thu nhỏ Header & Ảnh Slogan để không bị tràn màn hình */
+    .top-header {
+        height: 110px; /* Giảm chiều cao header */
+    }
+    .header-slogan {
+        max-height: 65px; /* Thu nhỏ ảnh chữ Ủy ban */
+        margin-left: 10px; /* Giảm khoảng cách rìa trái */
+    }
+
+    /* 2. Sắp xếp lại khu vực Tìm kiếm */
+    .search-section {
+        flex-direction: column; /* Chuyển từ xếp hàng ngang sang xếp hàng dọc */
+        padding: 15px;
+        gap: 15px;
+    }
+    
+    .search-grid {
+        grid-template-columns: 1fr; /* Thay vì 3 cột, ép về 1 cột dọc duy nhất để ô nhập rộng rãi */
+        gap: 12px;
+    }
+    
+    .action-buttons {
+        flex-direction: row; /* Cho 2 nút Tìm kiếm và Xóa hết nằm song song nhau */
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .btn-search, .btn-clear {
+        flex: 1; /* Cả 2 nút tự động chia đôi không gian đều nhau 50/50 */
+        padding: 12px; /* Tăng độ dày nút cho dễ bấm bằng ngón tay */
+    }
+
+    /* 3. Tối ưu bảng dữ liệu chống bị co chữ */
+    .table-container {
+        overflow-x: auto; /* Kích hoạt thanh cuộn ngang độc lập cho riêng cái bảng */
+        -webkit-overflow-scrolling: touch; /* Giúp thao tác vuốt bảng trên iPhone mượt mà hơn */
+    }
+    
+    table {
+        min-width: 700px; /* Ép bảng luôn giữ độ rộng tối thiểu 700px để chữ không bị bóp nghẹt */
+    }
+    
+    th, td {
+        padding: 8px 4px; /* Thu gọn khoảng cách đệm trong ô */
+        font-size: 13px; /* Giảm nhẹ 1 cỡ chữ để hiển thị được nhiều từ hơn */
+    }
+}
