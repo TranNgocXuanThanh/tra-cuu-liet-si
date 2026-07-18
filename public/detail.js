@@ -1,7 +1,7 @@
 // detail.js - Lấy chi tiết dữ liệu trực tiếp từ SQL thông qua Backend
 window.onload = async function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id'); // Lấy ID khóa chính truyền từ trang chủ sang[cite: 8]
+    const id = urlParams.get('id'); // Lấy ID khóa chính truyền từ trang chủ sang
 
     if (!id) {
         alert("Không tìm thấy thông tin liệt sĩ!");
@@ -23,42 +23,30 @@ window.onload = async function() {
 
         const data = await response.json();
         
-        // Đổ dữ liệu chữ khớp chính xác với tên cột trong PostgreSQL của bạn[cite: 8]
-        document.getElementById("p_name").innerText = data.ho_va_ten ||"Liệt sĩ";
+        // 1. Đổ dữ liệu chữ khớp chính xác với tên cột trong PostgreSQL của bạn
+        document.getElementById("p_name").innerText = data.ho_va_ten || "Liệt sĩ";
         document.getElementById("p_birth").innerText = data.nam_sinh || "";
         document.getElementById("p_home").innerText = data.que_quan || "";
         document.getElementById("p_death").innerText = data.ngay_hy_sinh || "";
         document.getElementById("p_deathPlace").innerText = data.noi_hy_sinh || "";
         document.getElementById("p_unit").innerText = data.don_vi || "";
         
-        // Định dạng thông tin vị trí mộ[cite: 8]
-        document.getElementById("p_area").innerText = "";
+        // 2. Định dạng thông tin vị trí mộ
+        document.getElementById("p_area").innerText = data.khu_lo || data.khu || ""; // Đã nạp lại biến hiển thị Khu/Lô dự phòng nếu trống
         document.getElementById("p_row").innerText = data.hang || "";
         document.getElementById("p_grave").innerText = data.so_mo || "";
         
-        // Hiển thị tiểu sử[cite: 8]
+        // 3. Hiển thị tiểu sử
         document.getElementById("p_bio").innerText = data.tieu_su || "Đang cập nhật thông tin tiểu sử...";
 
-        // BỔ SUNG hiển thị cột Sở thích (Nếu trên giao diện HTML có thẻ tương ứng, ví dụ id="p_hobby")
+        // 4. Hiển thị cột Sở thích (Nếu trên giao diện HTML có thẻ tương ứng)
         const hobbyElement = document.getElementById("p_hobby");
         if (hobbyElement) {
             hobbyElement.innerText = data.so_thich || "Trống";
         }
 
-        // Xử lý hiển thị Ảnh[cite: 8]
-//        const imgElement = document.getElementById("p_image");
-//        const noImgText = document.getElementById("no_image_text");
-
-//        if (data.anh_url && data.anh_url.trim() !== "") {
-//            // Nếu database có link ảnh -> Gắn đường dẫn vào src, hiện ảnh, ẩn chữ[cite: 8]
-//            imgElement.src = data.anh_url;
-//            imgElement.style.display = "block";
-//            noImgText.style.display = "none";
-//        } else {
-//            // Nếu không có ảnh hoặc trống -> Ẩn ảnh, hiện chữ "Ảnh" dự phòng[cite: 8]
-//            imgElement.style.display = "none";
-//           noImgText.style.display = "block";
-//        }
+        // ĐOẠN XỬ LÝ ẢNH ĐÃ ĐƯỢC XÓA BỎ HOÀN TOÀN:
+        // Việc hiển thị hình tượng trưng tĩnh lúc này sẽ do thẻ <img> trong file HTML tự đảm nhận.
 
     } catch (error) {
         console.error("Lỗi tải chi tiết:", error);
