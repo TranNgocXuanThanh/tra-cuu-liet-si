@@ -7,20 +7,28 @@
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
+   <!-- 1. Phần Header (Đã gộp chung Title vào nền xanh) -->
     <header class="top-header" id="banner-header">
         <div class="header-container">
             <img src="slogan-1-1.png" alt="Ủy ban nhân dân xã Phước An" class="header-slogan">
         </div>
+        <div class="title-banner">
+            Cổng tra cứu thông tin các Anh hùng Liệt sĩ địa bàn xã Phước An
+        </div>
     </header>
 
-    <div class="title-banner">
-        Cổng tra cứu thông tin các anh hùng liệt sĩ địa bàn xã Phước An
-    </div>
-
-    <div class="tab-menu">
-        <a href="index.html" class="tab-btn">Tra cứu mộ phần</a>
-        <a href="temple.html" class="tab-btn active">Tra cứu tên trong đền</a>
-    </div>
+    <!-- 2. Thanh Điều Hướng Menu (Giao diện giống web xã) -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <!-- Nút 3 gạch ngang chỉ hiện trên điện thoại -->
+            <button class="menu-toggle" onclick="toggleMenu()">&#9776;</button>
+            
+            <div class="nav-links" id="navLinks">
+                <a href="index.html" class="tab-btn">TRA CỨU MỘ PHẦN</a>
+                <a href="temple.html" class="tab-btn active">TRA CỨU TÊN TRONG ĐỀN</a>
+            </div>
+        </div>
+    </nav>
 
     <div class="container">
         <!-- Khung tìm kiếm (Chỉ có 4 ô) -->
