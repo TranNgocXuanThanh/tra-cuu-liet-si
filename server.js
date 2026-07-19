@@ -171,79 +171,18 @@ app.get('/api/sync-data', async (req, res) => {
 // =======================================================================
 app.post('/api/sync-webhook', async (req, res) => {
     try {
-        console.log("🔄 Bắt đầu nhận tín hiệu đồng bộ từ Google Sheets...");
+        console.log("🔄 Bắt đầu nhận tín hiệu đồng bộ từ Google Sheets qua Webhook...");
 
-        // --- BƯỚC 1: LẤY DỮ LIỆU TỪ GOOGLE SHEETS ---
-        // LƯU Ý: Đảm bảo bạn đã có 2 hàm đọc dữ liệu từ Sheets tương ứng
-        const dataTrongDen = await getShrineSheetsData(); // Dữ liệu Đền thờ
-        const dataNgoaiMo = await getGraveSheetsData();   // Dữ liệu Mộ phần
+        // Gọi ngay hàm đồng bộ xịn sò có sẵn của bạn!
+        await dongBoToanBoDuLieu();
 
-        if (!dataTrongDen && !dataNgoaiMo) {
-            return res.status(400).json({ error: "Không lấy được dữ liệu từ Google Sheets!" });
-        }
-
-        // --- BƯỚC 2: ĐỒNG BỘ BẢNG ĐỀN THỜ (danh_sach_trong_den) ---
-        if (dataTrongDen && dataTrongDen.length > 0) {
-            console.log("Đang đồng bộ dữ liệu Trong Đền...");
-            
-            // Xóa sạch dữ liệu cũ
-            await pool.query('TRUNCATE TABLE danh_sach_trong_den RESTART IDENTITY CASCADE;');
-            
-            // Đổ dữ liệu mới
-            for (const row of dataTrongDen) {
-                await pool.query(`
-                    INSERT INTO danh_sach_trong_den (ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, noi_hy_sinh, bang, hang, cot, tieu_su)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                `, [
-                    row.name || null, 
-                    row.birth || null, 
-                    row.home || null, 
-                    row.deathYear || null, 
-                    row.unit || null, 
-                    row.deathPlace || null, 
-                    row.board || null, 
-                    row.row || null, 
-                    row.col || null, 
-                    row.bio || null
-                ]);
-            }
-        }
-
-        // --- BƯỚC 3: ĐỒNG BỘ BẢNG MỘ PHẦN (danh_sach_liet_si) ---
-        if (dataNgoaiMo && dataNgoaiMo.length > 0) {
-            console.log("Đang đồng bộ dữ liệu Mộ Phần...");
-            
-            // Xóa sạch dữ liệu cũ
-            await pool.query('TRUNCATE TABLE danh_sach_liet_si RESTART IDENTITY CASCADE;');
-            
-            // Đổ dữ liệu mới (Sử dụng đúng các cột trong database thực tế)
-            for (const row of dataNgoaiMo) {
-                await pool.query(`
-                    INSERT INTO danh_sach_liet_si (so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo, don_vi, ngay_hy_sinh, noi_hy_sinh, tieu_su)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                `, [
-                    row.so_tt || null,        // Cột số thứ tự
-                    row.name || null,         // Cột họ và tên
-                    row.birth || null,        // Cột năm sinh
-                    row.home || null,         // Cột quê quán
-                    row.hang || null,         // Cột hàng
-                    row.so_mo || null,        // Cột số mộ
-                    row.unit || null,         // Cột đơn vị
-                    row.deathDate || null,    // Cột ngày/năm hy sinh
-                    row.deathPlace || null,   // Cột nơi hy sinh
-                    row.bio || null           // Cột tiểu sử
-                ]);
-            }
-        }
-
-        console.log("✅ Cập nhật SQL cả 2 bảng thành công!");
-        res.status(200).json({ message: "Đồng bộ thành công cả 2 danh sách!" });
+        console.log("✅ Webhook đã chạy xong lệnh đồng bộ!");
+        res.status(200).json({ message: "Đồng bộ thành công!" });
     } catch (err) {
-        console.error("❌ Lỗi đồng bộ:", err);
+        console.error("❌ Lỗi khi Webhook kích hoạt đồng bộ:", err);
         res.status(500).json({ error: "Lỗi hệ thống khi đồng bộ" });
     }
 });
-
 
 
 // 7. KHỞI ĐỘNG SERVER VÀ CHỈ ĐỒNG BỘ 1 LẦN DUY NHẤT LÚC NÀY
