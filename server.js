@@ -81,7 +81,7 @@ async function dongBoToanBoDuLieu() {
                     if (!row || row.trim() === '') continue;
                     const cols = parseCSVRow(row);
                     const values = Array.from({ length: 11 }, (_, i) => cols[i] || "");
-                    await client.query(`INSERT INTO danh_sach_trong_den (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, noi_hy_sinh, board, "row", col, tieu_su) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, values);
+                    await client.query(`INSERT INTO danh_sach_trong_den_tho (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, noi_hy_sinh, board, "row", col, tieu_su) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, values);
                 }
             }
         }
