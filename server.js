@@ -145,30 +145,18 @@ app.get('/api/martyrs/:id', async (req, res) => {
 });
 
 // 6. API CHI TIẾT: ĐỀN THỜ (Đã sửa đổi ánh xạ cột chính xác)
+// 6. API CHI TIẾT: ĐỀN THỜ
 app.get('/api/shrine-martyrs/:id', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT 
-                id_db AS id, 
-                ho_va_ten AS name, 
-                nam_sinh AS birth, 
-                que_quan AS home, 
-                nam_hy_sinh AS "deathYear", 
-                don_vi AS unit, 
-                noi_hy_sinh AS "deathPlace", 
-                bang AS board,  -- Hãy chắc chắn cột này trong SQL tên là bang
-                hang AS "row",  -- Bản cũ có thể bạn đang ghi nhầm cột khác vào đây
-                cot AS col,     -- Đảm bảo lấy đúng cột dữ liệu cot
-                tieu_su AS bio 
-            FROM danh_sach_trong_den 
-            WHERE id_db = $1
+            SELECT id_db AS id, ho_va_ten AS name, nam_sinh AS birth, que_quan AS home, 
+                   nam_hy_sinh AS "deathYear", don_vi AS unit, noi_hy_sinh AS "deathPlace", 
+                   board, "row", col, tieu_su AS bio 
+            FROM danh_sach_trong_den WHERE id_db = $1
         `, [req.params.id]);
-        
         if (result.rows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
         res.json(result.rows[0]);
-    } catch (err) { 
-        res.status(500).json({ error: "Lỗi chi tiết đền thờ" }); 
-    }
+    } catch (err) { res.status(500).json({ error: "Lỗi chi tiết đền thờ" }); }
 });
 
 // API LÀM MỚI DỮ LIỆU THỦ CÔNG (Gọi API này khi bạn cập nhật Google Sheets)
