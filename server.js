@@ -100,7 +100,9 @@ app.get('/api/martyrs', async (req, res) => {
         if (row) { sql += ` AND so_mo ILIKE $${paramIndex}`; values.push(`%${row}%`); paramIndex++; }
         if (grave) { sql += ` AND so_tt ILIKE $${paramIndex}`; values.push(`%${grave}%`); paramIndex++; }
         
-        sql += " ORDER BY CAST(so_tt AS INT) ASC";
+        // Đã áp dụng câu lệnh chống sập hệ thống khi ô Số Thứ Tự bị trống
+        sql += " ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST";
+        
         const result = await pool.query(sql, values);
         res.json(result.rows);
     } catch (err) { 
@@ -126,7 +128,9 @@ app.get('/api/shrine-martyrs', async (req, res) => {
         if (home) { sql += ` AND que_quan ILIKE $${paramIndex}`; values.push(`%${home}%`); paramIndex++; }
         if (deathYear) { sql += ` AND nam_hy_sinh ILIKE $${paramIndex}`; values.push(`%${deathYear}%`); paramIndex++; }
         
-        sql += " ORDER BY CAST(so_tt AS INT) ASC";
+        // Đã áp dụng câu lệnh chống sập hệ thống khi ô Số Thứ Tự bị trống
+        sql += " ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST";
+        
         const result = await pool.query(sql, values);
         res.json(result.rows);
     } catch (err) { 
