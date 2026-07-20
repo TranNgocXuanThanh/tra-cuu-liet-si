@@ -1,0 +1,127 @@
+/* ==========================================================================
+   CSS DÀNH RIÊNG CHO TRANG CHỦ (TÔNG MÀU ĐỒNG BỘ VỚI DASHBOARD.CSS)
+   ========================================================================== */
+
+.home-intro {
+    text-align: center;
+    margin: 20px 0 40px 0;
+    padding: 35px 25px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    border-top: 4px solid #0069b4; /* Đồng bộ màu dải tiêu đề xã */
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.home-intro h2 {
+    color: #0069b4; 
+    margin-bottom: 15px;
+    font-size: 24px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.home-intro p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #444;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.home-cards {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+}
+
+.action-card {
+    flex: 1;
+    min-width: 280px;
+    max-width: 450px;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 40px 25px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 144, 210, 0.15);
+    border-color: #0090d2; /* Sử dụng màu xanh thanh điều hướng khi hover */
+}
+
+.action-icon {
+    font-size: 50px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.action-card h3 {
+    color: #0072c6; /* Màu xanh của top-header gốc */
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.action-card p {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.home-notice {
+    background: #eef7fc; /* Màu nền xanh nhạt trang nghiêm */
+    border-left: 5px solid #0090d2;
+    border-top: 1px solid #d2e6f2;
+    border-right: 1px solid #d2e6f2;
+    border-bottom: 1px solid #d2e6f2;
+    padding: 25px;
+    border-radius: 4px;
+    margin-bottom: 40px;
+}
+
+.home-notice h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: #0069b4;
+    text-transform: uppercase;
+}
+
+.home-notice p { 
+    margin: 8px 0; 
+    line-height: 1.6; 
+    color: #333;
+    font-size: 15px;
+}
+
+/* --- Tối ưu hóa giao diện hiển thị trên điện thoại dưới 768px --- */
+@media screen and (max-width: 768px) {
+    .home-cards {
+        grid-template-columns: 1fr !important;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .action-card {
+        max-width: 100%;
+        padding: 30px 20px;
+    }
+    .home-intro h2 {
+        font-size: 20px;
+    }
+    .home-intro p {
+        font-size: 14px;
+    }
+}
