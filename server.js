@@ -77,7 +77,7 @@ async function dongBoToanBoDuLieu() {
                     const values = [
                         cols[0] || "", cols[1] || "", cols[2] || "", cols[3] || "",  
                         cols[4] || "", cols[5] || "", cols[9] || "", cols[10] || "", 
-                        cols[6] || "", cols[7] || "", cols[8] || ""   
+                        cols[6] || "", cols[7] || "", cols[8] || ""    
                     ];
                     await client.query(`
                         INSERT INTO danh_sach_trong_den 
@@ -95,17 +95,45 @@ async function dongBoToanBoDuLieu() {
     }
 }
 
+// API DANH SÁCH NGOÀI NGHĨA TRANG (HỖ TRỢ TÌM KIẾM KHÔNG DẤU)
 app.get('/api/martyrs', async (req, res) => {
     try {
-        const sql = `SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo FROM danh_sach_liet_si ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
-        const result = await pool.query(sql);
+        let { name, home } = req.query;
+        let conditions = [];
+        let values = [];
+        let paramIndex = 1;
+
+        let baseQuery = `
+            SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo 
+            FROM danh_sach_liet_si
+        `;
+
+        if (name && name.trim() !== '') {
+            conditions.push(`translate(LOWER(ho_va_ten), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            values.push(`%${name.trim()}%`);
+            paramIndex++;
+        }
+        if (home && home.trim() !== '') {
+            conditions.push(`translate(LOWER(que_quan), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            values.push(`%${home.trim()}%`);
+            paramIndex++;
+        }
+
+        if (conditions.length > 0) {
+            baseQuery += ` WHERE ` + conditions.join(' AND ');
+        }
+
+        baseQuery += ` ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
+
+        const result = await pool.query(baseQuery, values);
         res.json(result.rows);
     } catch (err) { 
+        console.error(err);
         res.status(500).json({ error: "Lỗi Server" }); 
     }
 });
 
-// ĐOẠN CODE SQL XỬ LÝ TÌM KIẾM KHÔNG DẤU TRỰC TIẾP
+// API DANH SÁCH TRONG ĐỀN (HỖ TRỢ TÌM KIẾM KHÔNG DẤU)
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
         let { name, birth, home, deathYear } = req.query;
