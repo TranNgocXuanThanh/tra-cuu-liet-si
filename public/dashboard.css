@@ -9,16 +9,16 @@ body {
     padding: 0;
 }
 
-/* --- 1. HEADER BANNER CHÍNH --- */
+/* --- 1. HEADER BANNER CHÍNH (ĐÃ PHÓNG TO) --- */
 .top-header {
     background-color: #0072c6;
     background-image: url('untitled-1.jpg');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    height: 110px; /* Ép mỏng chiều cao khung ảnh nền */
+    height: 145px; /* Tăng chiều cao giúp Header thoáng & hoành tráng hơn */
     display: flex;
-    align-items: center; /* Căn giữa slogan theo chiều dọc */
+    align-items: center;
     border-bottom: none;
 }
 
@@ -30,9 +30,9 @@ body {
 }
 
 .header-slogan {
-    max-height: 75px; /* Thu nhỏ ảnh chữ Slogan cho cân đối với khung 110px */
-    margin-left: 50px;
-    filter: drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.5));
+    max-height: 105px; /* Phóng to ảnh chữ "ỦY BAN NHÂN DÂN XÃ PHƯỚC AN" bự & rõ nét */
+    margin-left: 40px;
+    filter: drop-shadow(2px 3px 6px rgba(0, 0, 0, 0.4));
 }
 
 .top-header h1 {
@@ -49,19 +49,21 @@ body {
     padding: 0 20px;
 }
 
-/* --- 2. DẢI TIÊU ĐỀ (GRADIENT SANG TRỌNG) --- */
+/* --- 2. DẢI TIÊU ĐỀ CỔNG TRA CỨU (THIẾT KẾ SANG TRỌNG / UY NGHIÊM) --- */
 .title-banner {
-    background: linear-gradient(135deg, #004080 0%, #0059b3 100%);
+    background: linear-gradient(135deg, #0d3b66 0%, #004e92 50%, #000428 100%); /* Màu chiều sâu cao cấp */
     color: #ffffff;
     text-align: center;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: 18px 25px; /* Khoảng thở rộng rãi, dễ đọc */
+    font-size: 19px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1.5;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    letter-spacing: 0.8px;
+    line-height: 1.6;
+    border-top: 3px solid #f39c12; /* Đường viền Vàng Đồng chuẩn phong cách Nhà nước */
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Tạo hiệu ứng chữ nổi */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 10px rgba(0, 0, 0, 0.15);
     margin-bottom: 0;
 }
 
@@ -93,7 +95,7 @@ body {
     font-size: 20px;
     padding: 6px 14px;
     cursor: pointer;
-    margin-right: auto; /* Đẩy nút sang bên TRÁI */
+    margin-right: auto;
     transition: all 0.2s ease;
 }
 
@@ -103,7 +105,7 @@ body {
 
 .nav-links {
     display: flex;
-    gap: 10px; /* Khoảng cách giữa các nút */
+    gap: 10px;
     width: 100%;
 }
 
@@ -458,18 +460,19 @@ tr:hover { background-color: #f1f1f1; }
 /* --- 9. CẤU HÌNH RESPONSIVE CHO ĐIỆN THOẠI (Màn hình dưới 768px) --- */
 @media screen and (max-width: 768px) {
     
-    /* 1. Thu nhỏ Header & Ảnh Slogan */
-    .top-header { height: 85px; }
+    /* 1. Thu nhỏ Header & Ảnh Slogan trên điện thoại */
+    .top-header { height: 95px; }
     
     .header-slogan {
-        max-height: 50px;
+        max-height: 65px;
         margin: 0 auto;
         display: block;
     }
 
     .title-banner {
-        font-size: 14px;
-        padding: 8px 10px;
+        font-size: 13.5px;
+        padding: 12px 15px;
+        border-top: 2px solid #f39c12;
     }
 
     /* 2. Sắp xếp lại khu vực Tìm kiếm */
