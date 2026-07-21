@@ -60,7 +60,7 @@ async function dongBoToanBoDuLieu() {
                 id_db SERIAL PRIMARY KEY,
                 so_tt TEXT, ho_va_ten TEXT, nam_sinh TEXT, que_quan TEXT, 
                 nam_hy_sinh TEXT, don_vi TEXT, danh_hieu TEXT, 
-                board TEXT, "row" TEXT, col TEXT, tieu_su TEXT, ten_khong_dau TEXT
+                board TEXT, "row" TEXT, col TEXT, tieu_su TEXT
             );
         `);
         
@@ -77,12 +77,12 @@ async function dongBoToanBoDuLieu() {
                     const values = [
                         cols[0] || "", cols[1] || "", cols[2] || "", cols[3] || "",  
                         cols[4] || "", cols[5] || "", cols[9] || "", cols[10] || "", 
-                        cols[6] || "", cols[7] || "", cols[8] || "", cols[11] || ""   
+                        cols[6] || "", cols[7] || "", cols[8] || ""   
                     ];
                     await client.query(`
                         INSERT INTO danh_sach_trong_den 
-                        (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, danh_hieu, board, "row", col, tieu_su, ten_khong_dau) 
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                        (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, danh_hieu, board, "row", col, tieu_su) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                     `, values);
                 }
             }
@@ -105,6 +105,7 @@ app.get('/api/martyrs', async (req, res) => {
     }
 });
 
+// API tìm kiếm xử lý trực tiếp bằng hàm SQL chuẩn xác tuyệt đối, bỏ qua mọi lỗi gõ dấu
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
         let { name, birth, home, deathYear } = req.query;
@@ -118,8 +119,9 @@ app.get('/api/shrine-martyrs', async (req, res) => {
             FROM danh_sach_trong_den
         `;
 
+        // Hàm translate trong SQL sẽ tự động quy đổi toàn bộ chữ có dấu thành không dấu để so khớp
         if (name && name.trim() !== '') {
-            conditions.push(`(ho_va_ten ILIKE $${paramIndex} OR ten_khong_dau ILIKE $${paramIndex})`);
+            conditions.push(`translate(LOWER(ho_va_ten), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
             values.push(`%${name.trim()}%`);
             paramIndex++;
         }
@@ -129,7 +131,7 @@ app.get('/api/shrine-martyrs', async (req, res) => {
             paramIndex++;
         }
         if (home && home.trim() !== '') {
-            conditions.push(`(que_quan ILIKE $${paramIndex})`);
+            conditions.push(`translate(LOWER(que_quan), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
             values.push(`%${home.trim()}%`);
             paramIndex++;
         }
@@ -155,7 +157,7 @@ app.get('/api/shrine-martyrs', async (req, res) => {
 
 app.get('/api/shrine-martyrs/:id', async (req, res) => {
     try {
-        const result = await pool.query(`
+        const result = code = await pool.query(`
             SELECT id_db AS id, ho_va_ten AS name, nam_sinh AS birth, que_quan AS home, 
                    nam_hy_sinh AS "deathYear", don_vi AS unit, danh_hieu AS "title", 
                    board, "row", col, tieu_su AS bio 
