@@ -105,7 +105,7 @@ app.get('/api/martyrs', async (req, res) => {
     }
 });
 
-// API tìm kiếm xử lý trực tiếp bằng hàm SQL chuẩn xác tuyệt đối, bỏ qua mọi lỗi gõ dấu
+// ĐOẠN CODE SQL XỬ LÝ TÌM KIẾM KHÔNG DẤU TRỰC TIẾP
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
         let { name, birth, home, deathYear } = req.query;
@@ -119,7 +119,6 @@ app.get('/api/shrine-martyrs', async (req, res) => {
             FROM danh_sach_trong_den
         `;
 
-        // Hàm translate trong SQL sẽ tự động quy đổi toàn bộ chữ có dấu thành không dấu để so khớp
         if (name && name.trim() !== '') {
             conditions.push(`translate(LOWER(ho_va_ten), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
             values.push(`%${name.trim()}%`);
@@ -157,7 +156,7 @@ app.get('/api/shrine-martyrs', async (req, res) => {
 
 app.get('/api/shrine-martyrs/:id', async (req, res) => {
     try {
-        const result = code = await pool.query(`
+        const result = await pool.query(`
             SELECT id_db AS id, ho_va_ten AS name, nam_sinh AS birth, que_quan AS home, 
                    nam_hy_sinh AS "deathYear", don_vi AS unit, danh_hieu AS "title", 
                    board, "row", col, tieu_su AS bio 
