@@ -10,7 +10,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 1. CẤU HÌNH KẾT NỐI POSTGRESQL
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -32,13 +31,9 @@ function parseCSVRow(rowText) {
     return result;
 }
 
-// 2. HÀM ĐỒNG BỘ DỮ LIỆU TỪ GOOGLE SHEETS
 async function dongBoToanBoDuLieu() {
     const client = await pool.connect();
     try {
-        console.log("⏳ Đang bắt đầu tải dữ liệu từ Google Sheets...");
-        
-        // --- ĐỒNG BỘ MỘ PHẦN ---
         await client.query('DROP TABLE IF EXISTS danh_sach_liet_si CASCADE;');
         await client.query(`
             CREATE TABLE danh_sach_liet_si (
@@ -59,7 +54,6 @@ async function dongBoToanBoDuLieu() {
             }
         }
 
-        // --- ĐỒNG BỘ ĐỀN THỜ ---
         await client.query('DROP TABLE IF EXISTS danh_sach_trong_den CASCADE;');
         await client.query(`
             CREATE TABLE danh_sach_trong_den (
@@ -72,8 +66,6 @@ async function dongBoToanBoDuLieu() {
         
         const shrineGids = ['0','164496961', '2030583334', '520701169', '1389251803', '2097412071', '256922227', '1621758412', '1896480892'];
 
-        let boardIndex = 1; 
-
         for (const gid of shrineGids) {
             const resTrong = await fetch(`https://docs.google.com/spreadsheets/d/18KqyTFMNp_1hm4hQObfc7b8HtmsLLD6jkievCvYkF4U/export?format=csv&gid=${gid}`);
             if (resTrong.ok) {
@@ -82,21 +74,11 @@ async function dongBoToanBoDuLieu() {
                 for (let row of rowsTrong) {
                     if (!row || row.trim() === '') continue;
                     const cols = parseCSVRow(row);
-                    
                     const values = [
-                        cols[0] || "",  // $1: so_tt
-                        cols[1] || "",  // $2: ho_va_ten
-                        cols[2] || "",  // $3: nam_sinh
-                        cols[3] || "",  // $4: que_quan
-                        cols[4] || "",  // $5: nam_hy_sinh
-                        cols[5] || "",  // $6: don_vi
-                        cols[9] || "",  // $7: danh_hieu
-                        cols[10] || "", // $8: board
-                        cols[6] || "",  // $9: "row"
-                        cols[7] || "",  // $10: col
-                        cols[8] || ""   // $11: tieu_su
+                        cols[0] || "", cols[1] || "", cols[2] || "", cols[3] || "",  
+                        cols[4] || "", cols[5] || "", cols[9] || "", cols[10] || "", 
+                        cols[6] || "", cols[7] || "", cols[8] || ""   
                     ];
-
                     await client.query(`
                         INSERT INTO danh_sach_trong_den 
                         (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, danh_hieu, board, "row", col, tieu_su) 
@@ -104,9 +86,8 @@ async function dongBoToanBoDuLieu() {
                     `, values);
                 }
             }
-            boardIndex++; 
         }
-        console.log("✅ Đã hoàn tất đồng bộ toàn bộ dữ liệu vào cơ sở dữ liệu!");
+        console.log("✅ Đồng bộ dữ liệu thành công!");
     } catch (err) {
         console.error("❌ Lỗi đồng bộ:", err.message);
     } finally {
@@ -114,28 +95,59 @@ async function dongBoToanBoDuLieu() {
     }
 }
 
-// 3. API TRA CỨU: MỘ PHẦN (Trả về toàn bộ danh sách để giao diện tự lọc mượt mà)
+// Giữ nguyên API mộ phần
 app.get('/api/martyrs', async (req, res) => {
     try {
         const sql = `SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo FROM danh_sach_liet_si ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
         const result = await pool.query(sql);
         res.json(result.rows);
     } catch (err) { 
-        console.error(err);
-        res.status(500).json({ error: "Lỗi Server API Mộ phần" }); 
+        res.status(500).json({ error: "Lỗi Server" }); 
     }
 });
 
-// 4. API TRA CỨU: TRONG ĐỀN THỜ (Trả về toàn bộ danh sách để giao diện tự lọc mượt mà)
+// Giữ nguyên cấu trúc API đền thờ nhưng cho phép lọc gần đúng và không dấu chuẩn SQL
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
-        const sql = `
+        let { name, birth, home, deathYear } = req.query;
+        let conditions = [];
+        let values = [];
+        let paramIndex = 1;
+
+        let baseQuery = `
             SELECT id_db AS id, ho_va_ten AS name, nam_sinh AS birth, que_quan AS home, 
                    nam_hy_sinh AS "deathYear", board, "row", col 
-            FROM danh_sach_trong_den 
-            ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST
+            FROM danh_sach_trong_den
         `;
-        const result = await pool.query(sql);
+
+        if (name && name.trim() !== '') {
+            conditions.push(`translate(LOWER(ho_va_ten), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            values.push(`%${name.trim()}%`);
+            paramIndex++;
+        }
+        if (birth && birth.trim() !== '') {
+            conditions.push(`nam_sinh LIKE $${paramIndex}`);
+            values.push(`%${birth.trim()}%`);
+            paramIndex++;
+        }
+        if (home && home.trim() !== '') {
+            conditions.push(`translate(LOWER(que_quan), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            values.push(`%${home.trim()}%`);
+            paramIndex++;
+        }
+        if (deathYear && deathYear.trim() !== '') {
+            conditions.push(`nam_hy_sinh LIKE $${paramIndex}`);
+            values.push(`%${deathYear.trim()}%`);
+            paramIndex++;
+        }
+
+        if (conditions.length > 0) {
+            baseQuery += ` WHERE ` + conditions.join(' AND ');
+        }
+
+        baseQuery += ` ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
+
+        const result = await pool.query(baseQuery, values);
         res.json(result.rows);
     } catch (err) { 
         console.error(err);
@@ -143,16 +155,6 @@ app.get('/api/shrine-martyrs', async (req, res) => {
     }
 });
 
-// 5. API CHI TIẾT: MỘ PHẦN
-app.get('/api/martyrs/:id', async (req, res) => {
-    try {
-        const result = await pool.query(`SELECT * FROM danh_sach_liet_si WHERE id_db = $1`, [req.params.id]);
-        if (result.rows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
-        res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: "Lỗi chi tiết mộ phần" }); }
-});
-
-// 6. API CHI TIẾT: ĐỀN THỜ
 app.get('/api/shrine-martyrs/:id', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -163,30 +165,15 @@ app.get('/api/shrine-martyrs/:id', async (req, res) => {
         `, [req.params.id]);
         if (result.rows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
         res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: "Lỗi chi tiết đền thờ" }); }
+    } catch (err) { res.status(500).json({ error: "Lỗi chi tiết" }); }
 });
 
-// API LÀM MỚI DỮ LIỆU THỦ CÔNG
 app.get('/api/sync-data', async (req, res) => {
     await dongBoToanBoDuLieu();
-    res.json({ message: "Đã cập nhật dữ liệu mới nhất từ Google Sheets!" });
+    res.json({ message: "Đã cập nhật dữ liệu!" });
 });
 
-// API WEBHOOK
-app.post('/api/sync-webhook', async (req, res) => {
-    try {
-        console.log("🔄 Bắt đầu nhận tín hiệu đồng bộ qua Webhook...");
-        await dongBoToanBoDuLieu();
-        console.log("✅ Webhook đã chạy xong lệnh đồng bộ!");
-        res.status(200).json({ message: "Đồng bộ thành công!" });
-    } catch (err) {
-        console.error("❌ Lỗi khi Webhook kích hoạt đồng bộ:", err);
-        res.status(500).json({ error: "Lỗi hệ thống khi đồng bộ" });
-    }
-});
-
-// 7. KHỞI ĐỘNG SERVER
 app.listen(port, async () => { 
-    console.log(`🚀 Server đang chạy mượt mà tại cổng ${port}`); 
+    console.log(`Server đang chạy tại cổng ${port}`); 
     await dongBoToanBoDuLieu(); 
 });
