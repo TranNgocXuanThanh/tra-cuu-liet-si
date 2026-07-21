@@ -60,7 +60,7 @@ async function dongBoToanBoDuLieu() {
                 id_db SERIAL PRIMARY KEY,
                 so_tt TEXT, ho_va_ten TEXT, nam_sinh TEXT, que_quan TEXT, 
                 nam_hy_sinh TEXT, don_vi TEXT, danh_hieu TEXT, 
-                board TEXT, "row" TEXT, col TEXT, tieu_su TEXT
+                board TEXT, "row" TEXT, col TEXT, tieu_su TEXT, ten_khong_dau TEXT
             );
         `);
         
@@ -77,12 +77,12 @@ async function dongBoToanBoDuLieu() {
                     const values = [
                         cols[0] || "", cols[1] || "", cols[2] || "", cols[3] || "",  
                         cols[4] || "", cols[5] || "", cols[9] || "", cols[10] || "", 
-                        cols[6] || "", cols[7] || "", cols[8] || ""   
+                        cols[6] || "", cols[7] || "", cols[8] || "", cols[11] || ""   
                     ];
                     await client.query(`
                         INSERT INTO danh_sach_trong_den 
-                        (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, danh_hieu, board, "row", col, tieu_su) 
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                        (so_tt, ho_va_ten, nam_sinh, que_quan, nam_hy_sinh, don_vi, danh_hieu, board, "row", col, tieu_su, ten_khong_dau) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                     `, values);
                 }
             }
@@ -95,7 +95,6 @@ async function dongBoToanBoDuLieu() {
     }
 }
 
-// Giữ nguyên API mộ phần
 app.get('/api/martyrs', async (req, res) => {
     try {
         const sql = `SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo FROM danh_sach_liet_si ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
@@ -106,7 +105,6 @@ app.get('/api/martyrs', async (req, res) => {
     }
 });
 
-// Giữ nguyên cấu trúc API đền thờ nhưng cho phép lọc gần đúng và không dấu chuẩn SQL
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
         let { name, birth, home, deathYear } = req.query;
@@ -121,7 +119,7 @@ app.get('/api/shrine-martyrs', async (req, res) => {
         `;
 
         if (name && name.trim() !== '') {
-            conditions.push(`translate(LOWER(ho_va_ten), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            conditions.push(`(ho_va_ten ILIKE $${paramIndex} OR ten_khong_dau ILIKE $${paramIndex})`);
             values.push(`%${name.trim()}%`);
             paramIndex++;
         }
@@ -131,7 +129,7 @@ app.get('/api/shrine-martyrs', async (req, res) => {
             paramIndex++;
         }
         if (home && home.trim() !== '') {
-            conditions.push(`translate(LOWER(que_quan), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd') LIKE translate(LOWER($${paramIndex}), 'áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ', 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyyd')`);
+            conditions.push(`(que_quan ILIKE $${paramIndex})`);
             values.push(`%${home.trim()}%`);
             paramIndex++;
         }
@@ -166,6 +164,11 @@ app.get('/api/shrine-martyrs/:id', async (req, res) => {
         if (result.rows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: "Lỗi chi tiết" }); }
+});
+
+app.post('/api/sync-webhook', async (req, res) => {
+    await dongBoToanBoDuLieu();
+    res.json({ message: "Đồng bộ thành công!" });
 });
 
 app.get('/api/sync-data', async (req, res) => {
