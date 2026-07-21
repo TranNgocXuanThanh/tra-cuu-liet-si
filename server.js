@@ -36,11 +36,6 @@ function parseCSVRow(rowText) {
 async function dongBoToanBoDuLieu() {
     const client = await pool.connect();
     try {
-        console.log("⏳ Đang chuẩn bị cơ sở dữ liệu...");
-        
-        // Tự động bật extension unaccent để hỗ trợ tìm không dấu
-        await client.query('CREATE EXTENSION IF NOT EXISTS unaccent;');
-        
         console.log("⏳ Đang bắt đầu tải dữ liệu từ Google Sheets...");
         
         // --- ĐỒNG BỘ MỘ PHẦN ---
@@ -119,46 +114,11 @@ async function dongBoToanBoDuLieu() {
     }
 }
 
-// 3. API TRA CỨU: MỘ PHẦN (Tìm kiếm gần đúng, không dấu, có dấu, hoa, thường)
+// 3. API TRA CỨU: MỘ PHẦN (Trả về toàn bộ danh sách để giao diện tự lọc mượt mà)
 app.get('/api/martyrs', async (req, res) => {
     try {
-        const { name, birth, home, area, row, grave } = req.query;
-        let sql = `SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo FROM danh_sach_liet_si WHERE 1=1`;
-        const values = []; let paramIndex = 1;
-        
-        if (name) { 
-            sql += ` AND (ho_va_ten ILIKE $${paramIndex} OR unaccent(ho_va_ten) ILIKE unaccent($${paramIndex}))`; 
-            values.push(`%${name}%`); 
-            paramIndex++; 
-        }
-        if (birth) { 
-            sql += ` AND nam_sinh ILIKE $${paramIndex}`; 
-            values.push(`%${birth}%`); 
-            paramIndex++; 
-        }
-        if (home) { 
-            sql += ` AND (que_quan ILIKE $${paramIndex} OR unaccent(que_quan) ILIKE unaccent($${paramIndex}))`; 
-            values.push(`%${home}%`); 
-            paramIndex++; 
-        }
-        if (area) { 
-            sql += ` AND hang ILIKE $${paramIndex}`; 
-            values.push(`%${area}%`); 
-            paramIndex++; 
-        }
-        if (row) { 
-            sql += ` AND hang ILIKE $${paramIndex}`; 
-            values.push(`%${row}%`); 
-            paramIndex++; 
-        }
-        if (grave) { 
-            sql += ` AND so_mo ILIKE $${paramIndex}`; 
-            values.push(`%${grave}%`); 
-            paramIndex++; 
-        }
-        
-        sql += " ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST";
-        const result = await pool.query(sql, values);
+        const sql = `SELECT id_db AS id, so_tt, ho_va_ten, nam_sinh, que_quan, hang, so_mo FROM danh_sach_liet_si ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST`;
+        const result = await pool.query(sql);
         res.json(result.rows);
     } catch (err) { 
         console.error(err);
@@ -166,40 +126,16 @@ app.get('/api/martyrs', async (req, res) => {
     }
 });
 
-// 4. API TRA CỨU: TRONG ĐỀN THỜ (Tìm kiếm gần đúng, không dấu, có dấu, hoa, thường)
+// 4. API TRA CỨU: TRONG ĐỀN THỜ (Trả về toàn bộ danh sách để giao diện tự lọc mượt mà)
 app.get('/api/shrine-martyrs', async (req, res) => {
     try {
-        const { name, birth, home, deathYear } = req.query;
-        let sql = `
+        const sql = `
             SELECT id_db AS id, ho_va_ten AS name, nam_sinh AS birth, que_quan AS home, 
                    nam_hy_sinh AS "deathYear", board, "row", col 
-            FROM danh_sach_trong_den WHERE 1=1
+            FROM danh_sach_trong_den 
+            ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST
         `;
-        const values = []; let paramIndex = 1;
-        
-        if (name) { 
-            sql += ` AND (ho_va_ten ILIKE $${paramIndex} OR unaccent(ho_va_ten) ILIKE unaccent($${paramIndex}))`; 
-            values.push(`%${name}%`); 
-            paramIndex++; 
-        }
-        if (birth) { 
-            sql += ` AND nam_sinh ILIKE $${paramIndex}`; 
-            values.push(`%${birth}%`); 
-            paramIndex++; 
-        }
-        if (home) { 
-            sql += ` AND (que_quan ILIKE $${paramIndex} OR unaccent(que_quan) ILIKE unaccent($${paramIndex}))`; 
-            values.push(`%${home}%`); 
-            paramIndex++; 
-        }
-        if (deathYear) { 
-            sql += ` AND nam_hy_sinh ILIKE $${paramIndex}`; 
-            values.push(`%${deathYear}%`); 
-            paramIndex++; 
-        }
-        
-        sql += " ORDER BY CAST(NULLIF(TRIM(so_tt), '') AS INT) ASC NULLS LAST";
-        const result = await pool.query(sql, values);
+        const result = await pool.query(sql);
         res.json(result.rows);
     } catch (err) { 
         console.error(err);
